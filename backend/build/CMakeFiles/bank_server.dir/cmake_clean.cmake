@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/bank_server.dir/src/DatabaseManager.cpp.o"
+  "CMakeFiles/bank_server.dir/src/DatabaseManager.cpp.o.d"
   "CMakeFiles/bank_server.dir/src/main.cpp.o"
   "CMakeFiles/bank_server.dir/src/main.cpp.o.d"
   "bank_server"

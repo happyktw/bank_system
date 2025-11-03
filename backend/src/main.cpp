@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 // 获取项目绝对路径
 std::string getProjectRoot() {
@@ -64,6 +65,16 @@ int main() {
         crow::response response;
         response.write(content);
         response.add_header("Content-Type", "text/html; charset=utf-8");
+        return response;
+    });
+    
+    CROW_ROUTE(app, "/api/userinfo/<string>")
+    ([](const std::string& card_number) {
+        std::cout << "获取用户信息: 卡号=" << card_number << std::endl;
+    
+        std::string userInfo = DatabaseManager::getInstance().getUserInfo(card_number);
+        crow::response response(200, userInfo);
+        response.add_header("Content-Type", "application/json");
         return response;
     });
 
@@ -148,28 +159,37 @@ int main() {
     // 存款API
     CROW_ROUTE(app, "/api/deposit").methods("POST"_method)
     ([](const crow::request& req) {
-        try {
-            auto json = crow::json::load(req.body);
-            if (!json) {
-                return crow::response(400, "无效的JSON数据");
+    try {
+        auto json = crow::json::load(req.body);
+        if (!json) {
+            return crow::response(400, "{\"status\":\"error\",\"message\":\"无效的JSON数据\"}");
+        }
+        
+        std::string card_number = json["card_number"].s();
+        double amount = json["amount"].d();
+        
+        std::cout << "收到存款请求: 卡号=" << card_number << " 金额=" << amount << std::endl;
+        
+        bool success = DatabaseManager::getInstance().deposit(card_number, amount);
+        
+        crow::json::wvalue response;
+            if (success) {
+                response["status"] = "success";
+                response["message"] = "存款成功";
+                response["amount"] = amount;
+                // 返回新余额
+                double balance = DatabaseManager::getInstance().getBalance(card_number);
+                response["balance"] = balance;
+            } else {
+                response["status"] = "error";
+                response["message"] = "存款失败";
             }
-            
-            std::string card_number = json["card_number"].s();
-            double amount = json["amount"].d();
-            
-            std::cout << "收到存款请求: 卡号=" << card_number << " 金额=" << amount << std::endl;
-            
-            // 这里先返回成功，后续实现具体逻辑
-            crow::json::wvalue response;
-            response["status"] = "success";
-            response["message"] = "存款成功";
-            response["amount"] = amount;
             return crow::response(200, response);
         } catch (const std::exception& e) {
-            crow::json::wvalue error_response;
-            error_response["status"] = "error";
-            error_response["message"] = "服务器内部错误";
-            return crow::response(500, error_response);
+        crow::json::wvalue error_response;
+        error_response["status"] = "error";
+        error_response["message"] = "服务器内部错误";
+        return crow::response(500, error_response);
         }
     });
 
@@ -179,39 +199,45 @@ int main() {
         try {
             auto json = crow::json::load(req.body);
             if (!json) {
-                return crow::response(400, "无效的JSON数据");
+                return crow::response(400, "{\"status\":\"error\",\"message\":\"无效的JSON数据\"}");
             }
-            
-            std::string card_number = json["card_number"].s();
-            double amount = json["amount"].d();
-            
-            std::cout << "收到取款请求: 卡号=" << card_number << " 金额=" << amount << std::endl;
-            
-            // 这里先返回成功，后续实现具体逻辑
-            crow::json::wvalue response;
+        
+        std::string card_number = json["card_number"].s();
+        double amount = json["amount"].d();
+        
+        std::cout << "收到取款请求: 卡号=" << card_number << " 金额=" << amount << std::endl;
+        
+        bool success = DatabaseManager::getInstance().withdraw(card_number, amount);
+        
+        crow::json::wvalue response;
+        if (success) {
             response["status"] = "success";
             response["message"] = "取款成功";
             response["amount"] = amount;
-            return crow::response(200, response);
-        } catch (const std::exception& e) {
-            crow::json::wvalue error_response;
-            error_response["status"] = "error";
-            error_response["message"] = "服务器内部错误";
-            return crow::response(500, error_response);
+            double balance = DatabaseManager::getInstance().getBalance(card_number);
+            response["balance"] = balance;
+        } else {
+            response["status"] = "error";
+            response["message"] = "取款失败，请检查余额";
+        }
+        return crow::response(200, response);
+    } catch (const std::exception& e) {
+        crow::json::wvalue error_response;
+        error_response["status"] = "error";
+        error_response["message"] = "服务器内部错误";
+        return crow::response(500, error_response);
         }
     });
 
     // 交易记录API
-    CROW_ROUTE(app, "/api/history/<string>")
+    CROW_ROUTE(app, "/api/transactions/<string>")
     ([](const std::string& card_number) {
-        std::cout << "收到交易记录查询: 卡号=" << card_number << std::endl;
-        
-        // 这里先返回空记录，后续实现具体逻辑
-        crow::json::wvalue response;
-        response["status"] = "success";
-        response["card_number"] = card_number;
-        response["transactions"] = crow::json::wvalue::list();
-        return crow::response(200, response);
+        std::cout << "获取交易记录: 卡号=" << card_number << std::endl;
+    
+        std::string history = DatabaseManager::getInstance().getTransactionHistory(card_number);
+        crow::response response(200, history);
+        response.add_header("Content-Type", "application/json");
+        return response;
     });
 
     // 健康检查端点

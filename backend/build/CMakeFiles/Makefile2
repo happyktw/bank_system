@@ -81,12 +81,12 @@ clean: CMakeFiles/bank_server.dir/clean
 CMakeFiles/bank_server.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/bank_server.dir/build.make CMakeFiles/bank_server.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/bank_server.dir/build.make CMakeFiles/bank_server.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/eo/bank_system/backend/build/CMakeFiles --progress-num=1,2 "Built target bank_server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/eo/bank_system/backend/build/CMakeFiles --progress-num=1,2,3 "Built target bank_server"
 .PHONY : CMakeFiles/bank_server.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/bank_server.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/eo/bank_system/backend/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/eo/bank_system/backend/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/bank_server.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/eo/bank_system/backend/build/CMakeFiles 0
 .PHONY : CMakeFiles/bank_server.dir/rule

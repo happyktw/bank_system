@@ -67,6 +67,24 @@ public:
             return false;
         }
     }
+    
+    // 获取用户信息
+    std::string getUserInfo(const std::string& cardNumber);
+    
+    // 存款操作
+    bool deposit(const std::string& cardNumber, double amount);
+    
+    // 取款操作
+    bool withdraw(const std::string& cardNumber, double amount);
+    
+    // 获取交易记录
+    std::string getTransactionHistory(const std::string& cardNumber);
+    
+    // 开户功能
+    bool createAccount(const std::string& name, const std::string& idCard,
+                      const std::string& phone, const std::string& address,
+                      const std::string& cardNumber, const std::string& password,
+                      double initialDeposit);
 
     // 查询余额
     double getBalance(const std::string& cardNumber) {
@@ -99,4 +117,5 @@ public:
 
     DatabaseManager(const DatabaseManager&) = delete;
     DatabaseManager& operator=(const DatabaseManager&) = delete;
+    
 };

@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/eo/bank_system/backend/src/DatabaseManager.cpp" "CMakeFiles/bank_server.dir/src/DatabaseManager.cpp.o" "gcc" "CMakeFiles/bank_server.dir/src/DatabaseManager.cpp.o.d"
   "/home/eo/bank_system/backend/src/main.cpp" "CMakeFiles/bank_server.dir/src/main.cpp.o" "gcc" "CMakeFiles/bank_server.dir/src/main.cpp.o.d"
   )
 

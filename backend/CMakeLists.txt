@@ -23,6 +23,7 @@ include_directories(include ${MYSQL_CONNECTOR_INCLUDE_DIR})
 # 创建可执行文件
 add_executable(bank_server 
     src/main.cpp
+    src/DatabaseManager.cpp
 )
 
 # 链接库
