@@ -337,3 +337,102 @@ bool DatabaseManager::withdraw(const std::string& cardNumber, double amount) {
         return false;
     }
 }
+
+// 检查用户是否已存在
+bool DatabaseManager::checkUserExists(const std::string& idCard) {
+    try {
+        std::unique_ptr<sql::PreparedStatement> pstmt(
+            connection->prepareStatement(
+                "SELECT user_id FROM Users WHERE id_card = ?"
+            )
+        );
+        pstmt->setString(1, idCard);
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        return res->next();  // 如果有结果返回true，表示用户已存在
+    } catch (sql::SQLException& e) {
+        std::cerr << "检查用户存在性错误: " << e.what() << std::endl;
+        return true;  // 出错时返回true，防止重复注册
+    }
+}
+
+// 创建新用户
+bool DatabaseManager::createUser(const std::string& name, const std::string& idCard,
+                               const std::string& phone, const std::string& address) {
+    try {
+        // 开始事务
+        connection->setAutoCommit(false);
+
+        std::unique_ptr<sql::PreparedStatement> pstmt(
+            connection->prepareStatement(
+                "INSERT INTO Users (name, id_card, phone, address) VALUES (?, ?, ?, ?)"
+            )
+        );
+        pstmt->setString(1, name);
+        pstmt->setString(2, idCard);
+        pstmt->setString(3, phone);
+        pstmt->setString(4, address);
+
+        int result = pstmt->executeUpdate();
+        connection->commit();
+        connection->setAutoCommit(true);
+
+        return result > 0;
+    } catch (sql::SQLException& e) {
+        try {
+            connection->rollback();
+            connection->setAutoCommit(true);
+        } catch (...) {}
+        std::cerr << "创建用户错误: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+// 创建新账户
+bool DatabaseManager::createCard(int userId, const std::string& cardNumber,
+                              const std::string& password, double initialDeposit) {
+    try {
+        // 开始事务
+        connection->setAutoCommit(false);
+
+        // 创建银行卡
+        std::unique_ptr<sql::PreparedStatement> pstmt1(
+            connection->prepareStatement(
+                "INSERT INTO Cards (user_id, card_number, password_hash, balance) VALUES (?, ?, MD5(?), ?)"
+            )
+        );
+        pstmt1->setInt(1, userId);
+        pstmt1->setString(2, cardNumber);
+        pstmt1->setString(3, password);
+        pstmt1->setDouble(4, initialDeposit);
+
+        int result = pstmt1->executeUpdate();
+        if (result == 0) {
+            throw sql::SQLException("创建银行卡失败");
+        }
+
+        // 记录开户交易
+        std::unique_ptr<sql::PreparedStatement> pstmt2(
+            connection->prepareStatement(
+                "INSERT INTO Transactions (card_id, type, amount, balance_after, description) "
+                "SELECT card_id, 'open', ?, ?, '开户存款' FROM Cards WHERE card_number = ?"
+            )
+        );
+        pstmt2->setDouble(1, initialDeposit);
+        pstmt2->setDouble(2, initialDeposit);
+        pstmt2->setString(3, cardNumber);
+        pstmt2->executeUpdate();
+
+        connection->commit();
+        connection->setAutoCommit(true);
+
+        return true;
+    } catch (sql::SQLException& e) {
+        try {
+            connection->rollback();
+            connection->setAutoCommit(true);
+        } catch (...) {}
+        std::cerr << "创建账户错误: " << e.what() << std::endl;
+        return false;
+    }
+}
+
