@@ -123,15 +123,5 @@ public:
             connection->close();
         }
     }
-    // 检查用户是否已存在
-    bool checkUserExists(const std::string& idCard);
-
-    // 创建新用户
-    bool createUser(const std::string& name, const std::string& idCard,
-                   const std::string& phone, const std::string& address);
-
-    // 创建新账户
-    bool createCard(int userId, const std::string& cardNumber,
-                   const std::string& password, double initialDeposit);
-
+    
 };

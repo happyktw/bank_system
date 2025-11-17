@@ -137,60 +137,6 @@ int main() {
         }
     });
 
-    // 在main函数中添加注册路由
-    CROW_ROUTE(app, "/api/register").methods("POST"_method)
-    ([&](const%20crow::request&%20req) {
-        try {
-            auto json = crow::json::load(req.body);
-            if (!json) {
-                return crow::response(400, "Invalid JSON");
-            }
-
-            // 获取表单数据
-            std::string name = json["name"].s();
-            std::string idCard = json["idCard"].s();
-            std::string phone = json["phone"].s();
-            std::string address = json["address"].s();
-            std::string cardNumber = json["cardNumber"].s();
-            std::string password = json["password"].s();
-            double initialDeposit = json["initialDeposit"].d();
-
-            DatabaseManager& db = DatabaseManager::getInstance();
-
-            // 检查用户是否已存在
-            if (db.checkUserExists(idCard)) {
-                return crow::response(400, "用户已存在");
-            }
-
-            // 创建用户
-            if (!db.createUser(name, idCard, phone, address)) {
-                return crow::response(500, "创建用户失败");
-            }
-
-            // 获取新创建的用户ID
-            sql::Connection* conn = ConnectionManager::createConnection();
-            conn->setSchema("bank_system");
-            std::unique_ptr<sql::PreparedStatement> pstmt(
-                conn->prepareStatement("SELECT user_id FROM Users WHERE id_card = ?")
-            );
-            pstmt->setString(1, idCard);
-            std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-            res->next();
-            int userId = res->getInt("user_id");
-            ConnectionManager::closeConnection(conn);
-
-            // 创建银行卡
-            if (!db.createCard(userId, cardNumber, password, initialDeposit)) {
-                return crow::response(500, "创建银行卡失败");
-            }
-
-            return crow::response(200, "注册成功");
-        } catch (const std::exception& e) {
-            return crow::response(500, std::string("注册失败: ") + e.what());
-        }
-    });
-
-
     // 查询余额API
     CROW_ROUTE(app, "/api/balance/<string>")
     ([](const std::string& card_number) {
@@ -293,60 +239,6 @@ int main() {
         response.add_header("Content-Type", "application/json");
         return response;
     });
-
-    // 在main函数中添加注册路由
-    CROW_ROUTE(app, "/api/register").methods("POST"_method)
-    ([&](const%20crow::request&%20req) {
-        try {
-            auto json = crow::json::load(req.body);
-            if (!json) {
-                return crow::response(400, "Invalid JSON");
-            }
-
-            // 获取表单数据
-            std::string name = json["name"].s();
-            std::string idCard = json["idCard"].s();
-            std::string phone = json["phone"].s();
-            std::string address = json["address"].s();
-            std::string cardNumber = json["cardNumber"].s();
-            std::string password = json["password"].s();
-            double initialDeposit = json["initialDeposit"].d();
-
-            DatabaseManager& db = DatabaseManager::getInstance();
-
-            // 检查用户是否已存在
-            if (db.checkUserExists(idCard)) {
-                return crow::response(400, "用户已存在");
-            }
-
-            // 创建用户
-            if (!db.createUser(name, idCard, phone, address)) {
-                return crow::response(500, "创建用户失败");
-            }
-
-            // 获取新创建的用户ID
-            sql::Connection* conn = ConnectionManager::createConnection();
-            conn->setSchema("bank_system");
-            std::unique_ptr<sql::PreparedStatement> pstmt(
-                conn->prepareStatement("SELECT user_id FROM Users WHERE id_card = ?")
-            );
-            pstmt->setString(1, idCard);
-            std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-            res->next();
-            int userId = res->getInt("user_id");
-            ConnectionManager::closeConnection(conn);
-
-            // 创建银行卡
-            if (!db.createCard(userId, cardNumber, password, initialDeposit)) {
-                return crow::response(500, "创建银行卡失败");
-            }
-
-            return crow::response(200, "注册成功");
-        } catch (const std::exception& e) {
-            return crow::response(500, std::string("注册失败: ") + e.what());
-        }
-    });
-
 
     // 健康检查端点
     CROW_ROUTE(app, "/health")
